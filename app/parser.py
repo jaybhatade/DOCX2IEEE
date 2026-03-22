@@ -1,5 +1,6 @@
 from docx import Document
 
+
 def get_heading_level(style_name):
     if "Heading" in style_name:
         try:
@@ -7,6 +8,29 @@ def get_heading_level(style_name):
         except:
             return None
     return None
+
+
+def extract_table(table):
+    """Convert table into list of rows"""
+    table_data = []
+    for row in table.rows:
+        row_data = [cell.text.strip() for cell in row.cells]
+        table_data.append(row_data)
+    return table_data
+
+
+def is_table_caption(text):
+    """Detect if paragraph is a table caption"""
+    lower = text.lower()
+    return lower.startswith("table") and ":" in text
+
+
+def clean_caption(text):
+    """Extract caption text from 'Table X: Caption'"""
+    if ":" in text:
+        return text.split(":", 1)[1].strip()
+    return text
+
 
 def parse_docx(file_path):
     doc = Document(file_path)
@@ -19,63 +43,102 @@ def parse_docx(file_path):
     }
 
     stack = []
-    mode = None  # tracks where we are
+    mode = None
 
-    for para in doc.paragraphs:
-        text = para.text.strip()
-        if not text:
-            continue
+    # Track last caption found (to attach to next table)
+    last_caption = None
 
-        # Title
-        if not data["title"]:
-            data["title"] = text
-            continue
+    elements = list(doc.element.body)
 
-        lower = text.lower()
+    para_index = 0
+    table_index = 0
 
-        # Detect Abstract
-        if lower == "abstract":
-            mode = "abstract"
-            continue
+    for el in elements:
 
-        # Detect Keywords
-        if "keywords" in lower:
-            mode = "keywords"
-            continue
+        # ------------------ PARAGRAPH ------------------
+        if el.tag.endswith('p'):
+            para = doc.paragraphs[para_index]
+            para_index += 1
 
-        level = get_heading_level(para.style.name)
+            text = para.text.strip()
+            if not text:
+                continue
 
-        # If heading → section
-        if level:
-            mode = "section"
+            # Title
+            if not data["title"]:
+                data["title"] = text
+                continue
 
-            section = {
-                "heading": text,
-                "level": level,
-                "content": [],
-                "subsections": []
-            }
+            lower = text.lower()
 
-            if level == 1:
-                data["sections"].append(section)
-                stack = [section]
-            else:
-                parent = stack[level - 2]
-                parent["subsections"].append(section)
+            # Abstract
+            if lower == "abstract":
+                mode = "abstract"
+                continue
 
-                if len(stack) >= level:
-                    stack[level - 1] = section
+            # Keywords
+            if "keywords" in lower:
+                mode = "keywords"
+                continue
+
+            # Detect table caption
+            if is_table_caption(text):
+                last_caption = clean_caption(text)
+                continue
+
+            level = get_heading_level(para.style.name)
+
+            # Section heading
+            if level:
+                mode = "section"
+
+                section = {
+                    "heading": text,
+                    "level": level,
+                    "content": [],
+                    "subsections": []
+                }
+
+                if level == 1:
+                    data["sections"].append(section)
+                    stack = [section]
                 else:
-                    stack.append(section)
+                    parent = stack[level - 2]
+                    parent["subsections"].append(section)
 
-        else:
-            if mode == "abstract":
-                data["abstract"].append(text)
+                    if len(stack) >= level:
+                        stack[level - 1] = section
+                    else:
+                        stack.append(section)
 
-            elif mode == "keywords":
-                data["keywords"].append(text)
+            else:
+                if mode == "abstract":
+                    data["abstract"].append(text)
 
-            elif mode == "section" and stack:
-                stack[-1]["content"].append(text)
+                elif mode == "keywords":
+                    data["keywords"].append(text)
+
+                elif mode == "section" and stack:
+                    stack[-1]["content"].append({
+                        "type": "text",
+                        "value": text
+                    })
+
+        # ------------------ TABLE ------------------
+        elif el.tag.endswith('tbl'):
+            table = doc.tables[table_index]
+            table_index += 1
+
+            table_data = extract_table(table)
+
+            if mode == "section" and stack:
+                stack[-1]["content"].append({
+                    "type": "table",
+                    "value": table_data,
+                    "caption": last_caption  # may be None
+                })
+
+            # reset caption after use
+            last_caption = None
 
     return data
