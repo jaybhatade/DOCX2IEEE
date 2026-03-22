@@ -31,7 +31,6 @@
       overflow-x: hidden;
     }
 
-    /* ── NOISE TEXTURE ── */
     body::before {
       content: '';
       position: fixed; inset: 0;
@@ -208,6 +207,114 @@
     }
     .file-remove:hover { color: var(--accent); }
 
+    /* ── AUTHOR SECTION ── */
+    .author-section {
+      margin-top: 1.6rem;
+      border-top: 1px solid var(--border);
+      padding-top: 1.4rem;
+    }
+    .author-section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .author-section-title {
+      font-size: 0.82rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .author-section-title span { color: var(--accent); }
+
+    .skip-authors-row {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: 0.8rem; color: var(--mid);
+      font-family: 'DM Mono', monospace;
+      cursor: pointer;
+    }
+    .skip-authors-row input[type="checkbox"] {
+      accent-color: var(--accent);
+      width: 14px; height: 14px;
+      cursor: pointer;
+    }
+
+    .authors-list {
+      display: flex; flex-direction: column; gap: 0.9rem;
+    }
+    .author-card {
+      background: var(--paper);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      position: relative;
+      transition: border-color 0.2s;
+    }
+    .author-card:hover { border-color: var(--accent); }
+    .author-card-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem; font-weight: 500;
+      color: var(--accent); letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 0.7rem;
+    }
+    .author-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+    }
+    .author-field {
+      display: flex; flex-direction: column; gap: 0.25rem;
+    }
+    .author-field label {
+      font-size: 0.7rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      color: var(--mid);
+    }
+    .author-field input {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 0.45rem 0.7rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.85rem;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+    .author-field input:focus { border-color: var(--accent); }
+    .author-field input::placeholder { color: var(--light); }
+    .author-field.full { grid-column: 1 / -1; }
+
+    .btn-remove-author {
+      position: absolute; top: 0.7rem; right: 0.8rem;
+      background: none; border: none;
+      color: var(--light); font-size: 0.9rem;
+      cursor: pointer; line-height: 1;
+      padding: 2px 4px; border-radius: 3px;
+      transition: color 0.2s, background 0.2s;
+    }
+    .btn-remove-author:hover { color: var(--accent); background: #fde8e8; }
+
+    .btn-add-author {
+      display: flex; align-items: center; gap: 0.5rem;
+      margin-top: 0.7rem;
+      background: none;
+      border: 1.5px dashed var(--border);
+      border-radius: 7px;
+      padding: 0.6rem 1rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.82rem; font-weight: 600;
+      color: var(--mid);
+      cursor: pointer;
+      width: 100%;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .btn-add-author:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: #fdf5f1;
+    }
+
     /* Button */
     .btn-convert {
       width: 100%; margin-top: 1.4rem;
@@ -344,6 +451,7 @@
       .format-grid { grid-template-columns: 1fr; }
       header { padding: 1rem 1.5rem; }
       .hero h1 { font-size: 2.4rem; }
+      .author-fields { grid-template-columns: 1fr; }
     }
 
     .format-card {
@@ -467,9 +575,15 @@
       100% { transform: scale(1); opacity: 1; }
     }
 
-    /* Scroll reveal */
     .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
     .reveal.visible { opacity: 1; transform: none; }
+
+    /* disabled/skipped author list */
+    .authors-list.disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    .btn-add-author.hidden { display: none; }
   </style>
 </head>
 <body>
@@ -522,8 +636,28 @@
         <span class="file-name" id="fileName">document.docx</span>
         <button class="file-remove" id="removeFile" title="Remove">✕</button>
       </div>
+
+      <!-- ── AUTHOR DETAILS ── -->
+      <div class="author-section">
+        <div class="author-section-header">
+          <div class="author-section-title">✦ <span>Author Details</span></div>
+          <label class="skip-authors-row">
+            <input type="checkbox" id="skipAuthors" onchange="toggleSkipAuthors(this)" />
+            Skip authors
+          </label>
+        </div>
+
+        <div class="authors-list" id="authorsList">
+          <!-- First author added by default via JS -->
+        </div>
+
+        <button class="btn-add-author" id="addAuthorBtn" onclick="addAuthor()">
+          ＋ Add another author
+        </button>
+      </div>
+
       <button class="btn-convert" id="convertBtn" disabled onclick="startProcess()">
-        <span class="btn-text">⚡ Convert to IEEE Format</span>
+        <span class="btn-text">Convert to IEEE Format</span>
       </button>
     </div>
 
@@ -535,7 +669,7 @@
       <ul class="processing-steps-list" id="processingList">
         <li class="ps-item" id="ps1"><span class="ps-dot"></span>Parsing document structure</li>
         <li class="ps-item" id="ps2"><span class="ps-dot"></span>Applying IEEE heading styles</li>
-        <li class="ps-item" id="ps3"><span class="ps-dot"></span>Reformatting sections & body text</li>
+        <li class="ps-item" id="ps3"><span class="ps-dot"></span>Reformatting sections &amp; body text</li>
         <li class="ps-item" id="ps4"><span class="ps-dot"></span>Building reference list</li>
         <li class="ps-item" id="ps5"><span class="ps-dot"></span>Finalizing output file</li>
       </ul>
@@ -565,28 +699,38 @@
   <div class="format-grid">
 
     <div class="format-card">
-      <span class="fc-tag tag-h1">H1 — Paper Title</span>
-      <h3>Title Style</h3>
-      <p>Your paper title should use Word's <strong>Heading 1</strong> style or be the first line of the document in bold, 14–16pt.</p>
-      <div class="code-block"><span class="c-accent">Heading 1</span> <span class="c-dim">→</span>
+      <span class="fc-tag tag-h1">Title Style</span>
+      <h3>Paper Title</h3>
+      <p>Your paper title should be the <strong>very first paragraph</strong> in the document using the <strong>Title</strong> Word style (or plain text as the first line).</p>
+      <div class="code-block"><span class="c-accent">Title (first line)</span> <span class="c-dim">→</span>
 <span class="c-green">Deep Learning Approaches
 for Fault Detection in
 Power Grid Systems</span></div>
     </div>
 
     <div class="format-card">
-      <span class="fc-tag tag-h2">H2 — Sections</span>
+      <span class="fc-tag tag-h2">Heading 1 — Sections</span>
       <h3>Section Headings</h3>
-      <p>Use Word's <strong>Heading 2</strong> style for all major IEEE sections like Abstract, Introduction, Methodology, Results, etc.</p>
-      <div class="code-block"><span class="c-blue">Heading 2</span> <span class="c-dim">→</span>
-<span class="c-green">I. Introduction</span>
-<span class="c-green">II. Related Work</span>
-<span class="c-green">III. Methodology</span>
-<span class="c-green">IV. Results</span></div>
+      <p>Use Word's <strong>Heading 1</strong> style for all major IEEE sections like Introduction, Methodology, Results, Conclusion, etc.</p>
+      <div class="code-block"><span class="c-blue">Heading 1</span> <span class="c-dim">→</span>
+<span class="c-green">Introduction</span>
+<span class="c-green">Related Work</span>
+<span class="c-green">Methodology</span>
+<span class="c-green">Results</span></div>
     </div>
 
     <div class="format-card">
-      <span class="fc-tag tag-body">Body Text</span>
+      <span class="fc-tag tag-h2" style="background:#e8f5e9;color:#2e7d32;">Heading 2 — Subsections</span>
+      <h3>Subsection Headings</h3>
+      <p>Use Word's <strong>Heading 2</strong> style for subsections within a section. These will be auto-labelled A, B, C… in IEEE style.</p>
+      <div class="code-block"><span class="c-blue">Heading 2</span> <span class="c-dim">→</span>
+<span class="c-green">Dataset Overview</span>
+<span class="c-green">Model Architecture</span>
+<span class="c-green">Evaluation Metrics</span></div>
+    </div>
+
+    <div class="format-card">
+      <span class="fc-tag tag-body">Normal — Body Text</span>
       <h3>Paragraph / Body</h3>
       <p>Keep body text as <strong>Normal</strong> style in Word (12pt Times New Roman recommended). Avoid custom styles for regular paragraphs.</p>
       <div class="code-block"><span class="c-dim">Normal style, 12pt</span>
@@ -598,8 +742,8 @@ across 5 benchmark datasets…</span></div>
     <div class="format-card">
       <span class="fc-tag tag-faq">References</span>
       <h3>References Section</h3>
-      <p>Add a <strong>Heading 2</strong> labeled "References" and list them in IEEE citation format — numbered, bracketed.</p>
-      <div class="code-block"><span class="c-blue">Heading 2:</span> <span class="c-green">References</span>
+      <p>Add a <strong>Heading 1</strong> labeled "References" and list them in IEEE citation format — numbered, bracketed. <em>Add references manually after download.</em></p>
+      <div class="code-block"><span class="c-blue">Heading 1:</span> <span class="c-green">References</span>
 
 <span class="c-dim">[1]</span> <span class="c-green">A. Smith, "Title of paper,"
 in Proc. IEEE Conf., 2023, pp. 1–5.</span>
@@ -607,15 +751,27 @@ in Proc. IEEE Conf., 2023, pp. 1–5.</span>
 paper," IEEE Trans., vol. 12…</span></div>
     </div>
 
+    <div class="format-card">
+      <span class="fc-tag" style="background:#fff3e0;color:#e65100;">Abstract &amp; Keywords</span>
+      <h3>Abstract &amp; Keywords</h3>
+      <p>Write the word <strong>"Abstract"</strong> as a plain paragraph (Normal style), then the abstract body below it. Similarly, write <strong>"Keywords"</strong> followed by the keyword list.</p>
+      <div class="code-block"><span class="c-accent">Normal:</span> <span class="c-green">Abstract</span>
+<span class="c-dim">↓ body text follows</span>
+
+<span class="c-accent">Normal:</span> <span class="c-green">Keywords</span>
+<span class="c-dim">↓ keyword list follows</span></div>
+    </div>
+
     <div class="format-card wide">
       <span class="fc-tag tag-tips">💡 Pro Tips</span>
       <h3>Things to double-check before uploading</h3>
       <p>
-        <strong>Abstract:</strong> Place it right after the title as a separate paragraph with the label "Abstract" bolded or as Heading 2. &nbsp;•&nbsp;
-        <strong>Figures:</strong> Embed them inline with captions directly below (e.g., "Fig. 1. System Architecture"). &nbsp;•&nbsp;
-        <strong>Tables:</strong> Caption goes <em>above</em> the table in IEEE style (e.g., "TABLE I — Comparison of Methods"). &nbsp;•&nbsp;
-        <strong>Equations:</strong> Use Word's equation editor — they'll be preserved. &nbsp;•&nbsp;
-        <strong>Avoid:</strong> Text boxes, custom fonts, multi-column manual layouts (we handle column formatting for you).
+        <strong>Style order:</strong> Title → Abstract → Keywords → Heading 1 sections. &nbsp;•&nbsp;
+        <strong>Authors:</strong> Fill in the author form above — they'll be embedded in the output. &nbsp;•&nbsp;
+        <strong>Tables:</strong> Caption goes <em>above</em> the table using "Table X: Caption" format. &nbsp;•&nbsp;
+        <strong>References:</strong> Add them manually in the downloaded .docx (current limitation). &nbsp;•&nbsp;
+        <strong>Figures:</strong> Not yet supported — add images manually after conversion. &nbsp;•&nbsp;
+        <strong>Avoid:</strong> Text boxes, custom fonts, multi-column manual layouts.
       </p>
     </div>
 
@@ -642,7 +798,7 @@ paper," IEEE Trans., vol. 12…</span></div>
       Will my figures and tables be preserved?
       <span class="faq-arrow">▼</span>
     </button>
-    <div class="faq-a">Yes! Inline figures and Word-native tables are preserved and repositioned according to IEEE guidelines. Complex floating objects or SmartArt may need a quick manual review after conversion.</div>
+    <div class="faq-a">Tables are preserved and formatted with IEEE-style captions. Figures/images are <strong>not currently supported</strong> — add them manually after downloading your formatted document.</div>
   </div>
 
   <div class="faq-item">
@@ -650,7 +806,15 @@ paper," IEEE Trans., vol. 12…</span></div>
       Does it auto-number my sections?
       <span class="faq-arrow">▼</span>
     </button>
-    <div class="faq-a">Absolutely. Roman numeral section numbering (I, II, III…) is applied automatically to all Heading 2 sections. Sub-sections (A, B, C…) are auto-numbered from Heading 3 styles.</div>
+    <div class="faq-a">Absolutely. Roman numeral section numbering (I, II, III…) is applied automatically to all Heading 1 sections. Sub-sections (A, B, C…) are auto-numbered from Heading 2 styles.</div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggleFaq(this)">
+      How do I add multiple authors?
+      <span class="faq-arrow">▼</span>
+    </button>
+    <div class="faq-a">Use the <strong>Author Details</strong> section in the upload card. Click "Add another author" to add more. Each author needs a first name, last name, organization, city, and country. If you want to skip the author block, check "Skip authors" and add them manually later.</div>
   </div>
 
   <div class="faq-item">
@@ -673,7 +837,7 @@ paper," IEEE Trans., vol. 12…</span></div>
 
 <!-- FOOTER -->
 <footer>
-  DocForge — IEEE Formatter &nbsp;·&nbsp; Built for researchers, by researchers
+  DocForge — IEEE Formatter &nbsp;·&nbsp; Built for researchers, by researchers &nbsp;·&nbsp; Developed by Jay Bhatade
 </footer>
 
 <script>
@@ -710,6 +874,97 @@ paper," IEEE Trans., vol. 12…</span></div>
     convertBtn.disabled = false;
   }
 
+  // ── AUTHOR MANAGEMENT ──
+  let authorCount = 0;
+
+  function addAuthor(prefill) {
+    authorCount++;
+    const id = authorCount;
+    const list = document.getElementById('authorsList');
+    const card = document.createElement('div');
+    card.className = 'author-card';
+    card.id = `authorCard${id}`;
+    card.innerHTML = `
+      <div class="author-card-label">Author ${id}</div>
+      ${id > 1 ? `<button class="btn-remove-author" onclick="removeAuthor(${id})" title="Remove author">✕</button>` : ''}
+      <div class="author-fields">
+        <div class="author-field">
+          <label>First Name</label>
+          <input type="text" id="authorFirst${id}" placeholder="e.g. Jay" value="${prefill ? prefill.first : ''}" />
+        </div>
+        <div class="author-field">
+          <label>Last Name</label>
+          <input type="text" id="authorLast${id}" placeholder="e.g. Bhatade" value="${prefill ? prefill.last : ''}" />
+        </div>
+        <div class="author-field full">
+          <label>Organization / Institution</label>
+          <input type="text" id="authorOrg${id}" placeholder="e.g. MIT, IIT Bombay" value="${prefill ? prefill.org : ''}" />
+        </div>
+        <div class="author-field">
+          <label>City</label>
+          <input type="text" id="authorCity${id}" placeholder="e.g. Mumbai" value="${prefill ? prefill.city : ''}" />
+        </div>
+        <div class="author-field">
+          <label>Country</label>
+          <input type="text" id="authorCountry${id}" placeholder="e.g. India" value="${prefill ? prefill.country : ''}" />
+        </div>
+      </div>
+    `;
+    list.appendChild(card);
+    renumberAuthors();
+  }
+
+  function removeAuthor(id) {
+    const card = document.getElementById(`authorCard${id}`);
+    if (card) card.remove();
+    renumberAuthors();
+  }
+
+  function renumberAuthors() {
+    const cards = document.querySelectorAll('#authorsList .author-card');
+    cards.forEach((card, idx) => {
+      const label = card.querySelector('.author-card-label');
+      if (label) label.textContent = `Author ${idx + 1}`;
+      // Show/hide remove button: always hide on first, show on rest
+      const removeBtn = card.querySelector('.btn-remove-author');
+      if (removeBtn) removeBtn.style.display = idx === 0 ? 'none' : '';
+    });
+  }
+
+  function toggleSkipAuthors(cb) {
+    const list = document.getElementById('authorsList');
+    const addBtn = document.getElementById('addAuthorBtn');
+    if (cb.checked) {
+      list.classList.add('disabled');
+      addBtn.classList.add('hidden');
+    } else {
+      list.classList.remove('disabled');
+      addBtn.classList.remove('hidden');
+    }
+  }
+
+  function collectAuthors() {
+    if (document.getElementById('skipAuthors').checked) return [];
+    const cards = document.querySelectorAll('#authorsList .author-card');
+    const authors = [];
+    cards.forEach(card => {
+      const inputs = card.querySelectorAll('input');
+      // inputs: first, last, org, city, country
+      const first = inputs[0].value.trim();
+      const last = inputs[1].value.trim();
+      const org = inputs[2].value.trim();
+      const city = inputs[3].value.trim();
+      const country = inputs[4].value.trim();
+      if (first || last) {
+        authors.push({ first, last, org, city, country });
+      }
+    });
+    return authors;
+  }
+
+  // Add default first author on page load
+  addAuthor();
+
   // ── PROCESS FLOW ──
   function setStep(num) {
     ['step1','step2','step3'].forEach((id, i) => {
@@ -728,6 +983,10 @@ paper," IEEE Trans., vol. 12…</span></div>
     const file = fileInput.files[0];
     const formData = new FormData();
     formData.append('file', file);
+
+    // Attach authors as JSON string
+    const authors = collectAuthors();
+    formData.append('authors', JSON.stringify(authors));
 
     // Switch to processing state
     document.getElementById('uploadState').style.display = 'none';
@@ -759,7 +1018,6 @@ paper," IEEE Trans., vol. 12…</span></div>
         setTimeout(() => showSuccess(data.download_url), 500);
       })
       .catch(() => {
-        // Demo fallback — show success with placeholder link
         clearInterval(stepInterval);
         steps.forEach(s => document.getElementById(s).className = 'ps-item done');
         setTimeout(() => showSuccess('#'), 500);
@@ -786,6 +1044,13 @@ paper," IEEE Trans., vol. 12…</span></div>
     ['ps1','ps2','ps3','ps4','ps5'].forEach(id => {
       document.getElementById(id).className = 'ps-item';
     });
+    // Reset authors
+    document.getElementById('skipAuthors').checked = false;
+    document.getElementById('authorsList').classList.remove('disabled');
+    document.getElementById('addAuthorBtn').classList.remove('hidden');
+    document.getElementById('authorsList').innerHTML = '';
+    authorCount = 0;
+    addAuthor();
   }
 
   // ── FAQ ──
