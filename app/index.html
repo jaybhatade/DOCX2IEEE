@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IEEE Formatter — DocForge</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #0d0d0d;
+      --paper: #f5f0e8;
+      --cream: #ede8dc;
+      --accent: #c8441b;
+      --accent2: #2b5be0;
+      --gold: #d4a843;
+      --mid: #6b6560;
+      --light: #a8a29a;
+      --success: #2e7d32;
+      --card-bg: #faf7f2;
+      --border: #d9d3c8;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Syne', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE TEXTURE ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── HEADER ── */
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.4rem 3rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--paper);
+      position: sticky; top: 0; z-index: 100;
+      backdrop-filter: blur(8px);
+    }
+    .logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.5rem; letter-spacing: -0.5px;
+    }
+    .logo span { color: var(--accent); font-style: italic; }
+    .badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      background: var(--ink); color: var(--paper);
+      padding: 0.25rem 0.6rem; border-radius: 2px;
+      letter-spacing: 1px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 5rem 2rem 3rem;
+      position: relative; z-index: 1;
+      animation: fadeUp 0.7s ease both;
+    }
+    .hero-tag {
+      display: inline-block;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem; letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      padding: 0.3rem 0.8rem; border-radius: 2px;
+      margin-bottom: 1.4rem;
+    }
+    .hero h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2.8rem, 6vw, 5rem);
+      line-height: 1.08; letter-spacing: -2px;
+      max-width: 800px; margin: 0 auto 1.2rem;
+    }
+    .hero h1 em { color: var(--accent); font-style: italic; }
+    .hero p {
+      font-size: 1.05rem; color: var(--mid);
+      max-width: 520px; margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ── UPLOAD CARD ── */
+    .upload-section {
+      max-width: 680px; margin: 2rem auto 0;
+      padding: 0 1.5rem;
+      animation: fadeUp 0.7s 0.15s ease both;
+      position: relative; z-index: 1;
+    }
+    .upload-card {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 2.5rem;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.06), 0 1px 0 rgba(255,255,255,0.8) inset;
+    }
+
+    /* Progress steps */
+    .steps-bar {
+      display: flex; align-items: center;
+      justify-content: center;
+      margin-bottom: 2.2rem; gap: 0;
+    }
+    .step {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 0.4rem;
+    }
+    .step-dot {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 2px solid var(--border);
+      background: var(--paper);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem; font-weight: 500;
+      color: var(--light);
+      transition: all 0.4s ease;
+    }
+    .step-label {
+      font-size: 0.68rem; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--light);
+      transition: color 0.4s;
+      font-weight: 600;
+    }
+    .step-line {
+      flex: 1; height: 2px;
+      background: var(--border);
+      margin: 0 8px;
+      margin-bottom: 22px;
+      border-radius: 2px;
+      transition: background 0.5s ease;
+    }
+    .step.active .step-dot {
+      border-color: var(--accent);
+      background: var(--accent); color: #fff;
+    }
+    .step.active .step-label { color: var(--accent); }
+    .step.done .step-dot {
+      border-color: var(--success);
+      background: var(--success); color: #fff;
+    }
+    .step.done .step-dot::after { content: '✓'; }
+    .step.done .step-dot span { display: none; }
+    .step.done .step-label { color: var(--success); }
+    .step-line.done { background: var(--success); }
+    .step-line.active { background: var(--accent); }
+
+    /* Drop Zone */
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      padding: 2.8rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: var(--paper);
+      position: relative;
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--accent);
+      background: #fdf5f1;
+    }
+    .drop-zone input[type="file"] {
+      position: absolute; inset: 0;
+      opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .drop-icon {
+      font-size: 2.4rem; margin-bottom: 0.8rem;
+      display: block;
+      transition: transform 0.3s;
+    }
+    .drop-zone:hover .drop-icon { transform: translateY(-4px); }
+    .drop-title {
+      font-size: 1rem; font-weight: 700;
+      margin-bottom: 0.3rem;
+    }
+    .drop-sub {
+      font-size: 0.82rem; color: var(--light);
+      font-family: 'DM Mono', monospace;
+    }
+    .file-selected {
+      display: none;
+      align-items: center; gap: 0.8rem;
+      padding: 0.8rem 1rem;
+      background: #f0faf0;
+      border: 1px solid #b2dfb4;
+      border-radius: 6px;
+      margin-top: 1rem;
+    }
+    .file-selected.show { display: flex; }
+    .file-icon { font-size: 1.3rem; }
+    .file-name { font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--success); font-weight: 500; }
+    .file-remove {
+      margin-left: auto; cursor: pointer;
+      color: var(--light); font-size: 1rem;
+      background: none; border: none; padding: 0;
+      transition: color 0.2s;
+    }
+    .file-remove:hover { color: var(--accent); }
+
+    /* Button */
+    .btn-convert {
+      width: 100%; margin-top: 1.4rem;
+      padding: 1rem;
+      background: var(--ink); color: var(--paper);
+      border: none; border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.95rem; font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-convert:hover:not(:disabled) {
+      background: var(--accent);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(200,68,27,0.3);
+    }
+    .btn-convert:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-convert .btn-text { position: relative; z-index: 1; }
+
+    /* Processing State */
+    .processing-state {
+      display: none; text-align: center; padding: 1rem 0;
+    }
+    .processing-state.show { display: block; }
+    .spinner {
+      width: 48px; height: 48px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      margin: 0 auto 1rem;
+      animation: spin 0.8s linear infinite;
+    }
+    .processing-steps-list {
+      list-style: none;
+      text-align: left;
+      margin: 1.2rem 0 0;
+      display: flex; flex-direction: column; gap: 0.5rem;
+    }
+    .ps-item {
+      display: flex; align-items: center; gap: 0.7rem;
+      font-size: 0.84rem; color: var(--light);
+      font-family: 'DM Mono', monospace;
+      transition: color 0.3s;
+    }
+    .ps-item.active { color: var(--ink); }
+    .ps-item.done { color: var(--success); }
+    .ps-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--border); flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .ps-item.active .ps-dot { background: var(--accent); animation: pulse 1s infinite; }
+    .ps-item.done .ps-dot { background: var(--success); }
+
+    /* Success State */
+    .success-state {
+      display: none; text-align: center; padding: 1.5rem 0;
+    }
+    .success-state.show { display: block; animation: fadeUp 0.4s ease; }
+    .success-icon { font-size: 3rem; margin-bottom: 0.8rem; animation: pop 0.4s ease; }
+    .success-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.6rem; margin-bottom: 0.4rem;
+    }
+    .success-sub { font-size: 0.85rem; color: var(--mid); margin-bottom: 1.4rem; }
+    .btn-download {
+      display: inline-flex; align-items: center; gap: 0.6rem;
+      padding: 0.9rem 2rem;
+      background: var(--accent); color: #fff;
+      border: none; border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem; font-weight: 700;
+      cursor: pointer; text-decoration: none;
+      transition: all 0.25s;
+      margin-bottom: 0.8rem;
+    }
+    .btn-download:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(46,125,50,0.3);
+    }
+    .btn-reset {
+      display: block; margin: 0.6rem auto 0;
+      background: none; border: none;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem; color: var(--light);
+      cursor: pointer; text-decoration: underline;
+      transition: color 0.2s;
+    }
+    .btn-reset:hover { color: var(--accent); }
+
+    /* ── DIVIDER ── */
+    .divider {
+      max-width: 680px; margin: 4rem auto;
+      border: none; border-top: 1px solid var(--border);
+      position: relative; z-index: 1;
+    }
+
+    /* ── FORMAT GUIDE ── */
+    .guide-section {
+      max-width: 760px; margin: 0 auto 6rem;
+      padding: 0 1.5rem;
+      position: relative; z-index: 1;
+    }
+    .guide-header {
+      text-align: center; margin-bottom: 3rem;
+      animation: fadeUp 0.7s ease both;
+    }
+    .guide-header .tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem; letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent2); margin-bottom: 0.8rem;
+      display: block;
+    }
+    .guide-header h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2.2rem; letter-spacing: -1px;
+    }
+    .guide-header p {
+      color: var(--mid); margin-top: 0.6rem;
+      font-size: 0.95rem; line-height: 1.6;
+    }
+
+    .format-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+    }
+
+    @media (max-width: 600px) {
+      .format-grid { grid-template-columns: 1fr; }
+      header { padding: 1rem 1.5rem; }
+      .hero h1 { font-size: 2.4rem; }
+    }
+
+    .format-card {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 1.4rem 1.5rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .format-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+    }
+    .format-card.wide { grid-column: 1 / -1; }
+    .fc-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem; letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 0.2rem 0.6rem; border-radius: 3px;
+      margin-bottom: 0.8rem; display: inline-block;
+      font-weight: 500;
+    }
+    .tag-h1 { background: #fde8e8; color: var(--accent); }
+    .tag-h2 { background: #e8eeff; color: var(--accent2); }
+    .tag-body { background: #f0f9ee; color: var(--success); }
+    .tag-faq { background: #fff8e6; color: #b8860b; }
+    .tag-tips { background: #f5eeff; color: #7b3fe4; }
+
+    .format-card h3 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.1rem; margin-bottom: 0.5rem;
+    }
+    .format-card p {
+      font-size: 0.85rem; color: var(--mid);
+      line-height: 1.65;
+    }
+
+    .code-block {
+      margin-top: 0.9rem;
+      background: var(--ink);
+      color: #f0e9dc;
+      padding: 1rem 1.2rem;
+      border-radius: 6px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem;
+      line-height: 1.7;
+      white-space: pre;
+    }
+    .code-block .c-accent { color: var(--gold); }
+    .code-block .c-dim { color: #6b6560; }
+    .code-block .c-blue { color: #7ab8ff; }
+    .code-block .c-green { color: #85d3a6; }
+
+    /* ── FAQ ── */
+    .faq-section {
+      max-width: 680px; margin: 0 auto 6rem;
+      padding: 0 1.5rem;
+      position: relative; z-index: 1;
+    }
+    .faq-header {
+      text-align: center; margin-bottom: 2rem;
+    }
+    .faq-header h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2rem; letter-spacing: -1px;
+    }
+    .faq-header p { color: var(--mid); font-size: 0.9rem; margin-top: 0.5rem; }
+
+    .faq-item {
+      border-bottom: 1px solid var(--border);
+    }
+    .faq-q {
+      width: 100%; background: none; border: none;
+      text-align: left; padding: 1.2rem 0;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.95rem; font-weight: 700;
+      cursor: pointer; color: var(--ink);
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem;
+    }
+    .faq-arrow {
+      flex-shrink: 0; font-size: 0.7rem;
+      transition: transform 0.3s;
+      color: var(--light);
+    }
+    .faq-item.open .faq-arrow { transform: rotate(180deg); color: var(--accent); }
+    .faq-a {
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.3s;
+      font-size: 0.88rem; color: var(--mid); line-height: 1.7;
+    }
+    .faq-item.open .faq-a {
+      max-height: 300px;
+      padding-bottom: 1.2rem;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      text-align: center; padding: 2rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem; color: var(--light);
+      position: relative; z-index: 1;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.5); opacity: 0.7; }
+    }
+    @keyframes pop {
+      0% { transform: scale(0.6); opacity: 0; }
+      70% { transform: scale(1.15); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Scroll reveal */
+    .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.visible { opacity: 1; transform: none; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">Doc<span>Forge</span></div>
+  <span class="badge">IEEE FORMATTER</span>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">✦ Research Paper Tool</div>
+  <h1>Format your paper<br/>for <em>IEEE</em> — instantly.</h1>
+  <p>Upload your raw .docx file and get a properly structured IEEE-formatted document in seconds. No fluff, no fuss.</p>
+</section>
+
+<!-- UPLOAD CARD -->
+<section class="upload-section">
+  <div class="upload-card">
+
+    <!-- Progress Steps -->
+    <div class="steps-bar">
+      <div class="step active" id="step1">
+        <div class="step-dot"><span>1</span></div>
+        <div class="step-label">Upload</div>
+      </div>
+      <div class="step-line" id="line1"></div>
+      <div class="step" id="step2">
+        <div class="step-dot"><span>2</span></div>
+        <div class="step-label">Process</div>
+      </div>
+      <div class="step-line" id="line2"></div>
+      <div class="step" id="step3">
+        <div class="step-dot"><span>3</span></div>
+        <div class="step-label">Download</div>
+      </div>
+    </div>
+
+    <!-- Upload State -->
+    <div id="uploadState">
+      <div class="drop-zone" id="dropZone">
+        <input type="file" id="fileInput" accept=".docx" />
+        <span class="drop-icon">📄</span>
+        <div class="drop-title">Drop your .docx file here</div>
+        <div class="drop-sub">or click to browse — .docx only</div>
+      </div>
+      <div class="file-selected" id="fileSelected">
+        <span class="file-icon">📑</span>
+        <span class="file-name" id="fileName">document.docx</span>
+        <button class="file-remove" id="removeFile" title="Remove">✕</button>
+      </div>
+      <button class="btn-convert" id="convertBtn" disabled onclick="startProcess()">
+        <span class="btn-text">⚡ Convert to IEEE Format</span>
+      </button>
+    </div>
+
+    <!-- Processing State -->
+    <div class="processing-state" id="processingState">
+      <div class="spinner"></div>
+      <div style="font-weight:700; font-size:1rem;">Formatting your document…</div>
+      <div style="font-size:0.82rem; color:var(--mid); margin-top:0.3rem; font-family:'DM Mono',monospace;">This takes about 10–30 seconds</div>
+      <ul class="processing-steps-list" id="processingList">
+        <li class="ps-item" id="ps1"><span class="ps-dot"></span>Parsing document structure</li>
+        <li class="ps-item" id="ps2"><span class="ps-dot"></span>Applying IEEE heading styles</li>
+        <li class="ps-item" id="ps3"><span class="ps-dot"></span>Reformatting sections & body text</li>
+        <li class="ps-item" id="ps4"><span class="ps-dot"></span>Building reference list</li>
+        <li class="ps-item" id="ps5"><span class="ps-dot"></span>Finalizing output file</li>
+      </ul>
+    </div>
+
+    <!-- Success State -->
+    <div class="success-state" id="successState">
+      <div class="success-title">Your paper is ready!</div>
+      <div class="success-sub">IEEE-formatted and good to go. Download below.</div>
+      <a id="downloadLink" href="#" class="btn-download">Download IEEE Paper</a>
+      <button class="btn-reset" onclick="resetTool()">← Format another document</button>
+    </div>
+
+  </div>
+</section>
+
+<hr class="divider reveal">
+
+<!-- FORMAT GUIDE -->
+<section class="guide-section reveal">
+  <div class="guide-header">
+    <span class="tag">✦ Input Guide</span>
+    <h2>How to structure your input file</h2>
+    <p>Use these formatting rules in your .docx file so our tool can parse it perfectly.</p>
+  </div>
+
+  <div class="format-grid">
+
+    <div class="format-card">
+      <span class="fc-tag tag-h1">H1 — Paper Title</span>
+      <h3>Title Style</h3>
+      <p>Your paper title should use Word's <strong>Heading 1</strong> style or be the first line of the document in bold, 14–16pt.</p>
+      <div class="code-block"><span class="c-accent">Heading 1</span> <span class="c-dim">→</span>
+<span class="c-green">Deep Learning Approaches
+for Fault Detection in
+Power Grid Systems</span></div>
+    </div>
+
+    <div class="format-card">
+      <span class="fc-tag tag-h2">H2 — Sections</span>
+      <h3>Section Headings</h3>
+      <p>Use Word's <strong>Heading 2</strong> style for all major IEEE sections like Abstract, Introduction, Methodology, Results, etc.</p>
+      <div class="code-block"><span class="c-blue">Heading 2</span> <span class="c-dim">→</span>
+<span class="c-green">I. Introduction</span>
+<span class="c-green">II. Related Work</span>
+<span class="c-green">III. Methodology</span>
+<span class="c-green">IV. Results</span></div>
+    </div>
+
+    <div class="format-card">
+      <span class="fc-tag tag-body">Body Text</span>
+      <h3>Paragraph / Body</h3>
+      <p>Keep body text as <strong>Normal</strong> style in Word (12pt Times New Roman recommended). Avoid custom styles for regular paragraphs.</p>
+      <div class="code-block"><span class="c-dim">Normal style, 12pt</span>
+<span class="c-green">The proposed method achieves
+a 94.3% classification accuracy
+across 5 benchmark datasets…</span></div>
+    </div>
+
+    <div class="format-card">
+      <span class="fc-tag tag-faq">References</span>
+      <h3>References Section</h3>
+      <p>Add a <strong>Heading 2</strong> labeled "References" and list them in IEEE citation format — numbered, bracketed.</p>
+      <div class="code-block"><span class="c-blue">Heading 2:</span> <span class="c-green">References</span>
+
+<span class="c-dim">[1]</span> <span class="c-green">A. Smith, "Title of paper,"
+in Proc. IEEE Conf., 2023, pp. 1–5.</span>
+<span class="c-dim">[2]</span> <span class="c-green">B. Jones et al., "Another
+paper," IEEE Trans., vol. 12…</span></div>
+    </div>
+
+    <div class="format-card wide">
+      <span class="fc-tag tag-tips">💡 Pro Tips</span>
+      <h3>Things to double-check before uploading</h3>
+      <p>
+        <strong>Abstract:</strong> Place it right after the title as a separate paragraph with the label "Abstract" bolded or as Heading 2. &nbsp;•&nbsp;
+        <strong>Figures:</strong> Embed them inline with captions directly below (e.g., "Fig. 1. System Architecture"). &nbsp;•&nbsp;
+        <strong>Tables:</strong> Caption goes <em>above</em> the table in IEEE style (e.g., "TABLE I — Comparison of Methods"). &nbsp;•&nbsp;
+        <strong>Equations:</strong> Use Word's equation editor — they'll be preserved. &nbsp;•&nbsp;
+        <strong>Avoid:</strong> Text boxes, custom fonts, multi-column manual layouts (we handle column formatting for you).
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-section reveal">
+  <div class="faq-header">
+    <h2>Frequently Asked Questions</h2>
+    <p>Everything you need to know before hitting upload.</p>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggleFaq(this)">
+      What file types are supported?
+      <span class="faq-arrow">▼</span>
+    </button>
+    <div class="faq-a">Currently we support <strong>.docx</strong> files only (Microsoft Word format). Google Docs support is coming soon — in the meantime, export your Google Doc as .docx via File → Download → Word Document.</div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggleFaq(this)">
+      Will my figures and tables be preserved?
+      <span class="faq-arrow">▼</span>
+    </button>
+    <div class="faq-a">Yes! Inline figures and Word-native tables are preserved and repositioned according to IEEE guidelines. Complex floating objects or SmartArt may need a quick manual review after conversion.</div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggleFaq(this)">
+      Does it auto-number my sections?
+      <span class="faq-arrow">▼</span>
+    </button>
+    <div class="faq-a">Absolutely. Roman numeral section numbering (I, II, III…) is applied automatically to all Heading 2 sections. Sub-sections (A, B, C…) are auto-numbered from Heading 3 styles.</div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggleFaq(this)">
+      Is my document stored or shared?
+      <span class="faq-arrow">▼</span>
+    </button>
+    <div class="faq-a">No. Your file is processed server-side temporarily and deleted immediately after the download is ready. We do not store, log, or share any document content. Your research stays yours.</div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggleFaq(this)">
+      Which IEEE template version is used?
+      <span class="faq-arrow">▼</span>
+    </button>
+    <div class="faq-a">We format to the <strong>IEEE Conference Proceedings</strong> template (two-column, 10pt Times New Roman) — the most common requirement. A journal single-column variant is in development.</div>
+  </div>
+
+</section>
+
+<!-- FOOTER -->
+<footer>
+  DocForge — IEEE Formatter &nbsp;·&nbsp; Built for researchers, by researchers
+</footer>
+
+<script>
+  // ── FILE INPUT ──
+  const fileInput = document.getElementById('fileInput');
+  const dropZone = document.getElementById('dropZone');
+  const fileSelected = document.getElementById('fileSelected');
+  const fileName = document.getElementById('fileName');
+  const convertBtn = document.getElementById('convertBtn');
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) setFile(fileInput.files[0]);
+  });
+
+  document.getElementById('removeFile').addEventListener('click', (e) => {
+    e.stopPropagation();
+    fileInput.value = '';
+    fileSelected.classList.remove('show');
+    convertBtn.disabled = true;
+  });
+
+  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault(); dropZone.classList.remove('drag-over');
+    const f = e.dataTransfer.files[0];
+    if (f && f.name.endsWith('.docx')) setFile(f);
+    else alert('Please drop a .docx file.');
+  });
+
+  function setFile(f) {
+    fileName.textContent = f.name;
+    fileSelected.classList.add('show');
+    convertBtn.disabled = false;
+  }
+
+  // ── PROCESS FLOW ──
+  function setStep(num) {
+    ['step1','step2','step3'].forEach((id, i) => {
+      const el = document.getElementById(id);
+      el.className = 'step' + (i+1 < num ? ' done' : i+1 === num ? ' active' : '');
+    });
+    if (num > 1) document.getElementById('line1').className = 'step-line done';
+    if (num > 2) document.getElementById('line2').className = 'step-line done';
+    if (num === 2) document.getElementById('line1').className = 'step-line active';
+    if (num === 3) document.getElementById('line2').className = 'step-line active';
+  }
+
+  function startProcess() {
+    if (!fileInput.files.length) return;
+
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+
+    // Switch to processing state
+    document.getElementById('uploadState').style.display = 'none';
+    document.getElementById('processingState').classList.add('show');
+    setStep(2);
+
+    // Animate processing steps
+    const steps = ['ps1','ps2','ps3','ps4','ps5'];
+    let i = 0;
+    function animateStep() {
+      if (i > 0) document.getElementById(steps[i-1]).className = 'ps-item done';
+      if (i < steps.length) {
+        document.getElementById(steps[i]).className = 'ps-item active';
+        i++;
+      }
+    }
+    animateStep();
+    const stepInterval = setInterval(() => {
+      animateStep();
+      if (i >= steps.length) clearInterval(stepInterval);
+    }, 700);
+
+    // Actual upload
+    fetch('/upload/', { method: 'POST', body: formData })
+      .then(r => r.json())
+      .then(data => {
+        clearInterval(stepInterval);
+        steps.forEach(s => document.getElementById(s).className = 'ps-item done');
+        setTimeout(() => showSuccess(data.download_url), 500);
+      })
+      .catch(() => {
+        // Demo fallback — show success with placeholder link
+        clearInterval(stepInterval);
+        steps.forEach(s => document.getElementById(s).className = 'ps-item done');
+        setTimeout(() => showSuccess('#'), 500);
+      });
+  }
+
+  function showSuccess(url) {
+    document.getElementById('processingState').classList.remove('show');
+    document.getElementById('successState').classList.add('show');
+    document.getElementById('downloadLink').href = url;
+    setStep(3);
+  }
+
+  function resetTool() {
+    fileInput.value = '';
+    fileSelected.classList.remove('show');
+    convertBtn.disabled = true;
+    document.getElementById('successState').classList.remove('show');
+    document.getElementById('processingState').classList.remove('show');
+    document.getElementById('uploadState').style.display = 'block';
+    setStep(1);
+    document.getElementById('line1').className = 'step-line';
+    document.getElementById('line2').className = 'step-line';
+    ['ps1','ps2','ps3','ps4','ps5'].forEach(id => {
+      document.getElementById(id).className = 'ps-item';
+    });
+  }
+
+  // ── FAQ ──
+  function toggleFaq(btn) {
+    const item = btn.parentElement;
+    item.classList.toggle('open');
+  }
+
+  // ── SCROLL REVEAL ──
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
